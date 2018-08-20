@@ -1,0 +1,19 @@
+{
+  "name": "jquery-calculator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evertscott/jquery-calculator.git"
+  },
+  "author": "Evert Scott",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/evertscott/jquery-calculator/issues"
+  },
+  "homepage": "https://github.com/evertscott/jquery-calculator#readme"
+}
