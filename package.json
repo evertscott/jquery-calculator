@@ -18,5 +18,9 @@
   "homepage": "https://github.com/evertscott/jquery-calculator#readme",
   "devDependencies": {
     "node-sass": "^4.9.3"
+  },
+  "dependencies": {
+    "jquery": "^3.3.1",
+    "numeral": "^2.0.6"
   }
 }

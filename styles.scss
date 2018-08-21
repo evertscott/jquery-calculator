@@ -1,12 +1,69 @@
 body{
-   flex-direction: row;
    display: flex;
    align-items: center;
-   justify-content:center
+   justify-content:center;
+   padding-top: 20px;
+   background-color: cornsilk
 }
 
 #frame {
+   flex-direction: column;
    width : 500pt;
    height : 500pt;
-   background-color: black
+   background-color: black;
+   justify-content:center;
+   display: flex;
+}
+
+#screen {
+   height : 80pt;
+   background-color: black;
+   border : solid 2pt red;
+   color: red;
+   font : 30pt arial;
+   text-align: end;
+   vertical-align: middle;
+   line-height: 100px;
+   padding-left: 15pt;
+   padding-right: 15pt;
+}
+
+#buttons{
+   flex: 1;
+   display: flex;
+   flex-wrap: wrap;
+   flex-direction: row;
+   background-color: black;
+   border : solid 2pt red;
+}
+
+.button{
+    flex:1 1 150px;;
+    border : solid 1pt red;
+    background-color: black;
+    color: red;
+    font : 30pt arial;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 120px;
+}
+
+.button:hover{
+    cursor: pointer;
+}
+
+#general{
+   flex:2 1 190px;
+   display: flex;
+   flex-wrap: wrap;
+   flex-direction: row;
+   background-color: black;
+}
+
+#actions{
+   flex:1 2 30px;
+   display: flex;
+   flex-wrap: wrap;
+   flex-direction: row;
+   background-color: black;
 }
