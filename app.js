@@ -1,5 +1,6 @@
 function Calculator(){}
 import $ from "jquery"
+var numeral = require('numeral')
 
 Calculator.prototype = {
     addFrame : function(){
@@ -9,6 +10,7 @@ Calculator.prototype = {
         let frame = document.getElementById('frame')
         let screen = document.createElement('div');
         screen.id = 'screen'
+        screen.innerText = 'huihdd'
         frame.appendChild(screen)
     },
     addButtons : function(){
@@ -53,7 +55,51 @@ Calculator.prototype = {
 
         $('.button').click(function(){
             let text = this.innerText;
-            let screen = $('#screen').innerText;
+            let screenVal = $('#screen').innerText;
+            if(text == '+' || text == '-' || text == 'x' || text == '/'){
+                if(sessionStorage.getItem('value') == 'undefined' || sessionStorage.getItem('type') == 'undefined'){
+                    sessionStorage.setItem('value', screen)
+                    sessionStorage.setItem('type', text)
+                    screen.innerText = ''
+
+                } else {
+                    let val1 = sessionStorage.getItem('value')
+                    let val2 = screenVal
+                    let calcType = sessionStorage.getItem('type')
+                    let newValue = (calcType == '=')? val1: calculate(val1, val2, calcType);
+                    sessionStorage.setItem('value', newValue);
+                    sessionStorage.setItem('type', text);
+                    sessionStorage.setItem('clean', 'true');
+                    $('#screen').innerText = newValue
+                }
+
+            } else if (text == '='){
+                let val1 = sessionStorage.getItem('value')
+                let val2 = screenVal
+                let calcType = sessionStorage.getItem('type')
+                let newValue = calculate(val1, val2, calcType);
+                sessionStorage.setItem('value', newValue);
+                sessionStorage.setItem('type', text);
+                sessionStorage.setItem('clean', 'true');
+                $('#screen').innerText = newValue
+
+            } else {
+                if(typeof screenVal === "undefined" || sessionStorage.getItem('clean') == 'true'){
+                    $('#screen').innerText = text
+                    sessionStorage.setItem('clean','false')
+                
+                } else if(screenVal.length < 26){
+                    
+                    let value = numeral(screenVal).value().toString
+                    let newValue = value + text
+                    if(newValue.contains('.')){
+                        let split = newValue.split('.')
+                        $('#screen').innerText = `${numeral(split[0]).format('0,0')}.${split[1]}`
+                    } else {
+                        $('#screen').innerText =  numeral(newValue).format('0,0')
+                    }
+                }
+            }
             
         });
     }
