@@ -11737,16 +11737,21 @@ Calculator.prototype = {
         function calculate(value1, value2, calcType) {
             var val1 = numeral(value1).value();
             var val2 = numeral(value2).value();
-            console.log(val1 + "       " + val2);
             var calcValue = calcType == '+' ? val1 + val2 : calcType == '-' ? val1 - val2 : calcType == '×' ? val1 * val2 : val1 / val2;
             var calcString = calcValue.toString();
             return numeral(calcString).format('0,0.[0000000000000000000000000]');
         }
 
+        function cleanSessionStorage() {
+            sessionStorage.removeItem('value');
+            sessionStorage.removeItem('type');
+            sessionStorage.removeItem('prevValue');
+            sessionStorage.removeItem('prevType');
+        }
+
         (0, _jquery2.default)('.button').click(function () {
             var text = this.innerText;
             var screenVal = (0, _jquery2.default)('#screen').val();
-            console.log(screenVal);
             if (text == '+' || text == '-' || text == '×' || text == '÷') {
                 if (sessionStorage.getItem('value') == null || sessionStorage.getItem('type') == null) {
                     sessionStorage.setItem('value', screenVal);
@@ -11765,62 +11770,69 @@ Calculator.prototype = {
                     (0, _jquery2.default)('#screen').val(newValue);
                 }
             } else if (text == '=') {
-                var _val = sessionStorage.getItem('value');
-                var _val2 = screenVal;
-                var _calcType = sessionStorage.getItem('type');
-                if (_calcType == '=') {
-                    var prevType = sessionStorage.getItem('prevType');
-                    var prevValue = sessionStorage.getItem('prevValue');
-                    var _newValue = calculate(screenVal, prevValue, prevType);
-                    sessionStorage.setItem('value', _newValue);
-                    sessionStorage.setItem('type', text);
-                    sessionStorage.setItem('clean', 'true');
-                    (0, _jquery2.default)('#screen').val(_newValue);
+                if (sessionStorage.getItem('value') == null || sessionStorage.getItem('type') == null) {
+                    (0, _jquery2.default)('#screen').val(numeral(screenVal).format('0,0.[0000000000000000000000000]'));
                 } else {
-                    sessionStorage.setItem('prevType', _calcType);
-                    sessionStorage.setItem('prevValue', _val2);
-                    var _newValue2 = calculate(_val, _val2, _calcType);
-                    sessionStorage.setItem('value', _newValue2);
-                    sessionStorage.setItem('type', text);
-                    sessionStorage.setItem('clean', 'true');
-                    (0, _jquery2.default)('#screen').val(_newValue2);
+                    var _val = sessionStorage.getItem('value');
+                    var _val2 = screenVal;
+                    var _calcType = sessionStorage.getItem('type');
+                    if (_calcType == '=') {
+                        var prevType = sessionStorage.getItem('prevType');
+                        var prevValue = sessionStorage.getItem('prevValue');
+                        var _newValue = calculate(screenVal, prevValue, prevType);
+                        sessionStorage.setItem('value', _newValue);
+                        sessionStorage.setItem('type', text);
+                        sessionStorage.setItem('clean', 'true');
+                        (0, _jquery2.default)('#screen').val(_newValue);
+                    } else {
+                        sessionStorage.setItem('prevType', _calcType);
+                        sessionStorage.setItem('prevValue', _val2);
+                        var _newValue2 = calculate(_val, _val2, _calcType);
+                        sessionStorage.setItem('value', _newValue2);
+                        sessionStorage.setItem('type', text);
+                        sessionStorage.setItem('clean', 'true');
+                        (0, _jquery2.default)('#screen').val(_newValue2);
+                    }
                 }
             } else if (text == 'AC') {
-                sessionStorage.removeItem('value');
-                sessionStorage.removeItem('type');
-                sessionStorage.removeItem('prevValue');
-                sessionStorage.removeItem('prevType');
+                cleanSessionStorage();
                 (0, _jquery2.default)('#screen').val("");
             } else if (text == 'C') {
                 (0, _jquery2.default)('#screen').val("");
                 if (sessionStorage.getItem('type') === '=') {
-                    sessionStorage.removeItem('value');
-                    sessionStorage.removeItem('type');
-                    sessionStorage.removeItem('prevValue');
-                    sessionStorage.removeItem('prevType');
+                    cleanSessionStorage();
                 }
             } else if (text == '±') {
-                if (screenVal.startsWith('-')) {
-                    console.log("Hello2");
-                    (0, _jquery2.default)('#screen').val(screenVal.replace('-', ''));
+                if (screenVal === "" || sessionStorage.getItem('clean') === 'true') {
+                    (0, _jquery2.default)('#screen').val('-');
+                    sessionStorage.setItem('clean', 'false');
+                    if (sessionStorage.getItem('type') === '=') {
+                        cleanSessionStorage();
+                    }
                 } else {
-                    console.log("Hello");
-                    (0, _jquery2.default)('#screen').val('-' + screenVal);
+                    if (screenVal.startsWith('-')) {
+                        (0, _jquery2.default)('#screen').val(screenVal.replace('-', ''));
+                    } else {
+                        (0, _jquery2.default)('#screen').val('-' + screenVal);
+                    }
                 }
             } else {
                 if (screenVal === "" || sessionStorage.getItem('clean') === 'true') {
-                    var value = text == '.' ? '0.' : text == '±' ? '-' : text;
+                    var value = text == '.' ? '0.' : text;
                     (0, _jquery2.default)('#screen').val(value);
                     sessionStorage.setItem('clean', 'false');
                     if (sessionStorage.getItem('type') === '=') {
-                        sessionStorage.removeItem('value');
-                        sessionStorage.removeItem('type');
+                        cleanSessionStorage();
                     }
                 } else if (screenVal.length < 19) {
                     if (text == '.') {
-                        (0, _jquery2.default)('#screen').val(screenVal + '.');
+                        if (!screenVal.includes('.')) {
+                            (0, _jquery2.default)('#screen').val(screenVal + '.');
+                        }
                     } else if (screenVal == '-') {
                         (0, _jquery2.default)('#screen').val('-' + text);
+                    } else if (screenVal.includes('.')) {
+                        (0, _jquery2.default)('#screen').val(screenVal + text);
                     } else {
                         var _value = screenVal.endsWith('.') ? numeral(screenVal).value().toString() + '.' : numeral(screenVal).value().toString();
                         var _newValue3 = _value + text;
@@ -11868,7 +11880,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '35905' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '46489' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 

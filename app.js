@@ -50,16 +50,21 @@ Calculator.prototype = {
         function calculate(value1, value2, calcType){
             let val1 = numeral(value1).value()
             let val2 = numeral(value2).value()
-            console.log(val1 + "       " + val2)
             let calcValue = (calcType == '+')? val1 + val2 : (calcType == '-')? val1 - val2 : (calcType == '×')? val1 * val2 : val1 / val2
             let calcString = calcValue.toString()
             return numeral(calcString).format('0,0.[0000000000000000000000000]')
         }
 
+        function cleanSessionStorage(){
+            sessionStorage.removeItem('value')
+            sessionStorage.removeItem('type');
+            sessionStorage.removeItem('prevValue')
+            sessionStorage.removeItem('prevType');
+        }
+
         $('.button').click(function(){
             let text = this.innerText;
             let screenVal = $('#screen').val();
-            console.log(screenVal)
             if(text == '+' || text == '-' || text == '×' || text == '÷'){
                 if(sessionStorage.getItem('value') == null || sessionStorage.getItem('type') == null){
                     sessionStorage.setItem('value', screenVal);
@@ -80,69 +85,80 @@ Calculator.prototype = {
                 }
 
             } else if (text == '='){
-                let val1 = sessionStorage.getItem('value')
-                let val2 = screenVal
-                let calcType = sessionStorage.getItem('type')
-                if(calcType == '='){
-                    let prevType = sessionStorage.getItem('prevType')
-                    let prevValue = sessionStorage.getItem('prevValue')
-                    let newValue = calculate(screenVal, prevValue, prevType);
-                    sessionStorage.setItem('value', newValue);
-                    sessionStorage.setItem('type', text);
-                    sessionStorage.setItem('clean', 'true');
-                    $('#screen').val(newValue)
-                    
+                if(sessionStorage.getItem('value') == null || sessionStorage.getItem('type') == null){
+                    $('#screen').val(numeral(screenVal).format('0,0.[0000000000000000000000000]'))
+
                 } else {
-                    sessionStorage.setItem('prevType', calcType)
-                    sessionStorage.setItem('prevValue', val2)
-                    let newValue = calculate(val1, val2, calcType);
-                    sessionStorage.setItem('value', newValue);
-                    sessionStorage.setItem('type', text);
-                    sessionStorage.setItem('clean', 'true');
-                    $('#screen').val(newValue)
+                    let val1 = sessionStorage.getItem('value')
+                    let val2 = screenVal
+                    let calcType = sessionStorage.getItem('type')
+                    if(calcType == '='){
+                        let prevType = sessionStorage.getItem('prevType')
+                        let prevValue = sessionStorage.getItem('prevValue')
+                        let newValue = calculate(screenVal, prevValue, prevType);
+                        sessionStorage.setItem('value', newValue);
+                        sessionStorage.setItem('type', text);
+                        sessionStorage.setItem('clean', 'true');
+                        $('#screen').val(newValue)
+                        
+                    } else {
+                        sessionStorage.setItem('prevType', calcType)
+                        sessionStorage.setItem('prevValue', val2)
+                        let newValue = calculate(val1, val2, calcType);
+                        sessionStorage.setItem('value', newValue);
+                        sessionStorage.setItem('type', text);
+                        sessionStorage.setItem('clean', 'true');
+                        $('#screen').val(newValue)
+                    }
                 }
 
             } else if (text == 'AC') {
-                sessionStorage.removeItem('value')
-                sessionStorage.removeItem('type');
-                sessionStorage.removeItem('prevValue')
-                sessionStorage.removeItem('prevType');
+                cleanSessionStorage();
                 $('#screen').val("");
 
             } else if (text == 'C') {
                 $('#screen').val("");
                 if(sessionStorage.getItem('type') === '='){
-                    sessionStorage.removeItem('value')
-                    sessionStorage.removeItem('type');
-                    sessionStorage.removeItem('prevValue')
-                    sessionStorage.removeItem('prevType');
+                    cleanSessionStorage();
                 }
 
             } else if (text == '±') {
-                if(screenVal.startsWith('-')) {
-                    console.log("Hello2")
-                    $('#screen').val(screenVal.replace('-',''))
+                if(screenVal === "" || sessionStorage.getItem('clean') === 'true'){
+                    $('#screen').val('-')
+                    sessionStorage.setItem('clean','false');
+                    if(sessionStorage.getItem('type') === '='){
+                        cleanSessionStorage();
+                    }
+
                 } else {
-                    console.log("Hello")
-                    $('#screen').val('-' + screenVal)
+                    if(screenVal.startsWith('-')) {
+                        $('#screen').val(screenVal.replace('-',''))
+                    } else {
+                        $('#screen').val('-' + screenVal)
+                    }
+
                 }
 
             } else {
                 if(screenVal === "" || sessionStorage.getItem('clean') === 'true'){
-                    let value = (text == '.')? '0.' : (text == '±')? '-' : text
+                    let value = (text == '.')? '0.' : text
                     $('#screen').val(value)
-                    sessionStorage.setItem('clean','false')
+                    sessionStorage.setItem('clean','false');
                     if(sessionStorage.getItem('type') === '='){
-                        sessionStorage.removeItem('value')
-                        sessionStorage.removeItem('type');
+                        cleanSessionStorage();
                     }
                 
                 } else if(screenVal.length < 19){
                     if(text == '.'){
-                        $('#screen').val(screenVal + '.')
+                        if(!screenVal.includes('.')){
+                            $('#screen').val(screenVal + '.')
+                        }
 
                     } else if (screenVal == '-'){
                         $('#screen').val('-' + text)
+
+                    } else if (screenVal.includes('.')){
+                        $('#screen').val(screenVal + text)
 
                     } else {
                         let value = (screenVal.endsWith('.'))? numeral(screenVal).value().toString() + '.': numeral(screenVal).value().toString()
