@@ -11695,9 +11695,10 @@ Calculator.prototype = {
     },
     addScreen: function addScreen() {
         var frame = document.getElementById('frame');
-        var screen = document.createElement('div');
+        var screen = document.createElement('textarea');
+        screen.maxLength = 27;
+        screen.readOnly = true;
         screen.id = 'screen';
-        screen.innerText = 'huihdd';
         frame.appendChild(screen);
     },
     addButtons: function addButtons() {
@@ -11730,24 +11731,21 @@ Calculator.prototype = {
         function calculate(value1, value2, calcType) {
             var val1 = numeral(value1).value();
             var val2 = numeral(value2).value();
+            console.log(val1 + "       " + val2);
             var calcValue = calcType == '+' ? val1 + val2 : calcType == '-' ? val1 - val2 : calcType == 'x' ? val1 * val2 : val1 / val2;
-            var calcString = calcValue.toString;
-            if (calcString.contains('.')) {
-                var split = calcString.split('.');
-                return numeral(split[0]).format('0,0') + '.' + split[1];
-            } else {
-                return numeral(calcString).format('0,0');
-            }
+            var calcString = calcValue.toString();
+            return numeral(calcString).format('0,0.[0000000000000000000000000]');
         }
 
         (0, _jquery2.default)('.button').click(function () {
             var text = this.innerText;
-            var screenVal = (0, _jquery2.default)('#screen').innerText;
+            var screenVal = (0, _jquery2.default)('#screen').val();
+            console.log(screenVal);
             if (text == '+' || text == '-' || text == 'x' || text == '/') {
-                if (sessionStorage.getItem('value') == 'undefined' || sessionStorage.getItem('type') == 'undefined') {
-                    sessionStorage.setItem('value', screen);
+                if (sessionStorage.getItem('value') == null || sessionStorage.getItem('type') == null) {
+                    sessionStorage.setItem('value', screenVal);
                     sessionStorage.setItem('type', text);
-                    screen.innerText = '';
+                    (0, _jquery2.default)('#screen').val("");
                 } else {
                     var val1 = sessionStorage.getItem('value');
                     var val2 = screenVal;
@@ -11756,7 +11754,7 @@ Calculator.prototype = {
                     sessionStorage.setItem('value', newValue);
                     sessionStorage.setItem('type', text);
                     sessionStorage.setItem('clean', 'true');
-                    (0, _jquery2.default)('#screen').innerText = newValue;
+                    (0, _jquery2.default)('#screen').val(newValue);
                 }
             } else if (text == '=') {
                 var _val = sessionStorage.getItem('value');
@@ -11766,20 +11764,23 @@ Calculator.prototype = {
                 sessionStorage.setItem('value', _newValue);
                 sessionStorage.setItem('type', text);
                 sessionStorage.setItem('clean', 'true');
-                (0, _jquery2.default)('#screen').innerText = _newValue;
+                (0, _jquery2.default)('#screen').val(_newValue);
             } else {
-                if (typeof screenVal === "undefined" || sessionStorage.getItem('clean') == 'true') {
-                    (0, _jquery2.default)('#screen').innerText = text;
+                if (screenVal === "" || sessionStorage.getItem('clean') === 'true') {
+                    var value = text == '.' ? '0.' : text;
+                    (0, _jquery2.default)('#screen').val(value);
                     sessionStorage.setItem('clean', 'false');
+                    if (sessionStorage.getItem('type') === '=') {
+                        sessionStorage.removeItem('value');
+                        sessionStorage.removeItem('type');
+                    }
                 } else if (screenVal.length < 26) {
-
-                    var value = numeral(screenVal).value().toString;
-                    var _newValue2 = value + text;
-                    if (_newValue2.contains('.')) {
-                        var split = _newValue2.split('.');
-                        (0, _jquery2.default)('#screen').innerText = numeral(split[0]).format('0,0') + '.' + split[1];
+                    if (text == '.') {
+                        (0, _jquery2.default)('#screen').val(screenVal + '.');
                     } else {
-                        (0, _jquery2.default)('#screen').innerText = numeral(_newValue2).format('0,0');
+                        var _value = screenVal.endsWith('.') ? numeral(screenVal).value().toString() + '.' : numeral(screenVal).value().toString();
+                        var _newValue2 = _value + text;
+                        (0, _jquery2.default)('#screen').val(numeral(_newValue2).format('0,0.[0000000000000000000000000]'));
                     }
                 }
             }
@@ -11823,7 +11824,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '45493' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '33895' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 

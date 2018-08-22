@@ -8,9 +8,10 @@ Calculator.prototype = {
     },
     addScreen : function(){
         let frame = document.getElementById('frame')
-        let screen = document.createElement('div');
+        let screen = document.createElement('textarea');
+        screen.maxLength = 27
+        screen.readOnly = true
         screen.id = 'screen'
-        screen.innerText = 'huihdd'
         frame.appendChild(screen)
     },
     addButtons : function(){
@@ -43,24 +44,21 @@ Calculator.prototype = {
         function calculate(value1, value2, calcType){
             let val1 = numeral(value1).value()
             let val2 = numeral(value2).value()
+            console.log(val1 + "       " + val2)
             let calcValue = (calcType == '+')? val1 + val2 : (calcType == '-')? val1 - val2 : (calcType == 'x')? val1 * val2 : val1 / val2
-            let calcString = calcValue.toString
-            if(calcString.contains('.')){
-                let split = calcString.split('.')
-                return `${numeral(split[0]).format('0,0')}.${split[1]}`
-            } else {
-                return numeral(calcString).format('0,0')
-            }
+            let calcString = calcValue.toString()
+            return numeral(calcString).format('0,0.[0000000000000000000000000]')
         }
 
         $('.button').click(function(){
             let text = this.innerText;
-            let screenVal = $('#screen').innerText;
+            let screenVal = $('#screen').val();
+            console.log(screenVal)
             if(text == '+' || text == '-' || text == 'x' || text == '/'){
-                if(sessionStorage.getItem('value') == 'undefined' || sessionStorage.getItem('type') == 'undefined'){
-                    sessionStorage.setItem('value', screen)
-                    sessionStorage.setItem('type', text)
-                    screen.innerText = ''
+                if(sessionStorage.getItem('value') == null || sessionStorage.getItem('type') == null){
+                    sessionStorage.setItem('value', screenVal);
+                    sessionStorage.setItem('type', text);
+                    $('#screen').val("");
 
                 } else {
                     let val1 = sessionStorage.getItem('value')
@@ -70,7 +68,7 @@ Calculator.prototype = {
                     sessionStorage.setItem('value', newValue);
                     sessionStorage.setItem('type', text);
                     sessionStorage.setItem('clean', 'true');
-                    $('#screen').innerText = newValue
+                    $('#screen').val(newValue)
                 }
 
             } else if (text == '='){
@@ -81,22 +79,25 @@ Calculator.prototype = {
                 sessionStorage.setItem('value', newValue);
                 sessionStorage.setItem('type', text);
                 sessionStorage.setItem('clean', 'true');
-                $('#screen').innerText = newValue
+                $('#screen').val(newValue)
 
             } else {
-                if(typeof screenVal === "undefined" || sessionStorage.getItem('clean') == 'true'){
-                    $('#screen').innerText = text
+                if(screenVal === "" || sessionStorage.getItem('clean') === 'true'){
+                    let value = (text == '.')? '0.' : text
+                    $('#screen').val(value)
                     sessionStorage.setItem('clean','false')
+                    if(sessionStorage.getItem('type') === '='){
+                        sessionStorage.removeItem('value')
+                        sessionStorage.removeItem('type');
+                    }
                 
                 } else if(screenVal.length < 26){
-                    
-                    let value = numeral(screenVal).value().toString
-                    let newValue = value + text
-                    if(newValue.contains('.')){
-                        let split = newValue.split('.')
-                        $('#screen').innerText = `${numeral(split[0]).format('0,0')}.${split[1]}`
+                    if(text == '.'){
+                        $('#screen').val(screenVal + '.')
                     } else {
-                        $('#screen').innerText =  numeral(newValue).format('0,0')
+                        let value = (screenVal.endsWith('.'))? numeral(screenVal).value().toString() + '.': numeral(screenVal).value().toString()
+                        let newValue = value + text
+                        $('#screen').val(numeral(newValue).format('0,0.[0000000000000000000000000]'))
                     }
                 }
             }
