@@ -11,12 +11,13 @@ body {
   height: 500pt;
   background-color: black;
   justify-content: center;
+  border: solid 4pt brown;
   display: flex; }
 
 #screen {
   height: 80pt;
   background-color: black;
-  border: solid 2pt red;
+  border: solid 4pt red;
   color: red;
   font: 30pt arial;
   text-align: end;
@@ -32,23 +33,28 @@ body {
   flex-wrap: wrap;
   flex-direction: row;
   background-color: black;
-  border: solid 2pt red; }
+  border: solid 5pt black; }
 
 .button {
-  flex: 1 1 150px;
-  border: solid 1pt red;
+  border: solid 1pt darkgoldenrod;
   background-color: black;
   color: red;
   font: 30pt arial;
   text-align: center;
   vertical-align: middle;
-  line-height: 120px; }
+  line-height: 100px; }
 
 .button:hover {
   cursor: pointer; }
 
+.notplus {
+  flex: 1 1 150px; }
+
+.plus {
+  flex: 1 1 302px; }
+
 #general {
-  flex: 2 1 190px;
+  flex: 2 1 230px;
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
@@ -57,6 +63,6 @@ body {
 #actions {
   flex: 1 2 30px;
   display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
+  align-items: stretch;
+  flex-direction: column;
   background-color: black; }

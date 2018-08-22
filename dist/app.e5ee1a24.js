@@ -11696,7 +11696,7 @@ Calculator.prototype = {
     addScreen: function addScreen() {
         var frame = document.getElementById('frame');
         var screen = document.createElement('textarea');
-        screen.maxLength = 27;
+        screen.maxLength = 15;
         screen.readOnly = true;
         screen.id = 'screen';
         frame.appendChild(screen);
@@ -11706,19 +11706,25 @@ Calculator.prototype = {
         var buttons = document.createElement('div');
         var general = document.createElement('div');
         general.id = 'general';
-        for (var i = 0; i < 12; i++) {
+        var general_btns = ['AC', 'C', '±', '7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.', '='];
+        for (var i = 0; i < general_btns.length; i++) {
             var button = document.createElement('button');
-            button.className = 'button';
-            button.clicka;
-            button.innerText = i == 9 ? '0' : i == 10 ? '.' : i == 11 ? '=' : i + (-6 * (Math.floor(i / 3) + 1) + 13);
+            button.className = 'button notplus';
+            button.clickable = true;
+            button.innerText = general_btns[i];
+            //button.innerText = (i == 9)? '0' : (i == 10)? '.' : (i == 11)? '=' : (i + (-6 * (Math.floor(i/3) + 1) + 13))
             general.appendChild(button);
         }
         var actions = document.createElement('div');
         actions.id = 'actions';
-        for (var i = 0; i < 4; i++) {
+        var action = ['÷', '×', '-', '+'];
+        for (var i = 0; i < action.length; i++) {
             var _button = document.createElement('button');
-            var action = ['+', '-', 'x', '/'];
-            _button.className = 'button';
+            if (action[i] === '+') {
+                _button.className = 'button plus';
+            } else {
+                _button.className = 'button notplus';
+            }
             _button.innerText = action[i];
             actions.appendChild(_button);
         }
@@ -11732,7 +11738,7 @@ Calculator.prototype = {
             var val1 = numeral(value1).value();
             var val2 = numeral(value2).value();
             console.log(val1 + "       " + val2);
-            var calcValue = calcType == '+' ? val1 + val2 : calcType == '-' ? val1 - val2 : calcType == 'x' ? val1 * val2 : val1 / val2;
+            var calcValue = calcType == '+' ? val1 + val2 : calcType == '-' ? val1 - val2 : calcType == '×' ? val1 * val2 : val1 / val2;
             var calcString = calcValue.toString();
             return numeral(calcString).format('0,0.[0000000000000000000000000]');
         }
@@ -11741,16 +11747,18 @@ Calculator.prototype = {
             var text = this.innerText;
             var screenVal = (0, _jquery2.default)('#screen').val();
             console.log(screenVal);
-            if (text == '+' || text == '-' || text == 'x' || text == '/') {
+            if (text == '+' || text == '-' || text == '×' || text == '÷') {
                 if (sessionStorage.getItem('value') == null || sessionStorage.getItem('type') == null) {
                     sessionStorage.setItem('value', screenVal);
                     sessionStorage.setItem('type', text);
-                    (0, _jquery2.default)('#screen').val("");
+                    sessionStorage.setItem('clean', 'true');
                 } else {
+                    var def = text == '×' || text == '÷' ? "1" : "0";
                     var val1 = sessionStorage.getItem('value');
-                    var val2 = screenVal;
+                    var clean = sessionStorage.getItem('clean');
+                    var val2 = clean == 'true' ? def : screenVal;
                     var calcType = sessionStorage.getItem('type');
-                    var newValue = calcType == '=' ? val1 : calculate(val1, val2, calcType);
+                    var newValue = calcType == '=' || clean == 'true' ? val1 : calculate(val1, val2, calcType);
                     sessionStorage.setItem('value', newValue);
                     sessionStorage.setItem('type', text);
                     sessionStorage.setItem('clean', 'true');
@@ -11760,27 +11768,63 @@ Calculator.prototype = {
                 var _val = sessionStorage.getItem('value');
                 var _val2 = screenVal;
                 var _calcType = sessionStorage.getItem('type');
-                var _newValue = calculate(_val, _val2, _calcType);
-                sessionStorage.setItem('value', _newValue);
-                sessionStorage.setItem('type', text);
-                sessionStorage.setItem('clean', 'true');
-                (0, _jquery2.default)('#screen').val(_newValue);
+                if (_calcType == '=') {
+                    var prevType = sessionStorage.getItem('prevType');
+                    var prevValue = sessionStorage.getItem('prevValue');
+                    var _newValue = calculate(screenVal, prevValue, prevType);
+                    sessionStorage.setItem('value', _newValue);
+                    sessionStorage.setItem('type', text);
+                    sessionStorage.setItem('clean', 'true');
+                    (0, _jquery2.default)('#screen').val(_newValue);
+                } else {
+                    sessionStorage.setItem('prevType', _calcType);
+                    sessionStorage.setItem('prevValue', _val2);
+                    var _newValue2 = calculate(_val, _val2, _calcType);
+                    sessionStorage.setItem('value', _newValue2);
+                    sessionStorage.setItem('type', text);
+                    sessionStorage.setItem('clean', 'true');
+                    (0, _jquery2.default)('#screen').val(_newValue2);
+                }
+            } else if (text == 'AC') {
+                sessionStorage.removeItem('value');
+                sessionStorage.removeItem('type');
+                sessionStorage.removeItem('prevValue');
+                sessionStorage.removeItem('prevType');
+                (0, _jquery2.default)('#screen').val("");
+            } else if (text == 'C') {
+                (0, _jquery2.default)('#screen').val("");
+                if (sessionStorage.getItem('type') === '=') {
+                    sessionStorage.removeItem('value');
+                    sessionStorage.removeItem('type');
+                    sessionStorage.removeItem('prevValue');
+                    sessionStorage.removeItem('prevType');
+                }
+            } else if (text == '±') {
+                if (screenVal.startsWith('-')) {
+                    console.log("Hello2");
+                    (0, _jquery2.default)('#screen').val(screenVal.replace('-', ''));
+                } else {
+                    console.log("Hello");
+                    (0, _jquery2.default)('#screen').val('-' + screenVal);
+                }
             } else {
                 if (screenVal === "" || sessionStorage.getItem('clean') === 'true') {
-                    var value = text == '.' ? '0.' : text;
+                    var value = text == '.' ? '0.' : text == '±' ? '-' : text;
                     (0, _jquery2.default)('#screen').val(value);
                     sessionStorage.setItem('clean', 'false');
                     if (sessionStorage.getItem('type') === '=') {
                         sessionStorage.removeItem('value');
                         sessionStorage.removeItem('type');
                     }
-                } else if (screenVal.length < 26) {
+                } else if (screenVal.length < 19) {
                     if (text == '.') {
                         (0, _jquery2.default)('#screen').val(screenVal + '.');
+                    } else if (screenVal == '-') {
+                        (0, _jquery2.default)('#screen').val('-' + text);
                     } else {
                         var _value = screenVal.endsWith('.') ? numeral(screenVal).value().toString() + '.' : numeral(screenVal).value().toString();
-                        var _newValue2 = _value + text;
-                        (0, _jquery2.default)('#screen').val(numeral(_newValue2).format('0,0.[0000000000000000000000000]'));
+                        var _newValue3 = _value + text;
+                        (0, _jquery2.default)('#screen').val(numeral(_newValue3).format('0,0.[0000000000000000000000000]'));
                     }
                 }
             }
@@ -11824,7 +11868,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '33895' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '35905' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 

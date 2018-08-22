@@ -9,7 +9,7 @@ Calculator.prototype = {
     addScreen : function(){
         let frame = document.getElementById('frame')
         let screen = document.createElement('textarea');
-        screen.maxLength = 27
+        screen.maxLength = 15
         screen.readOnly = true
         screen.id = 'screen'
         frame.appendChild(screen)
@@ -19,19 +19,25 @@ Calculator.prototype = {
         let buttons = document.createElement('div')
         let general = document.createElement('div')
         general.id = 'general'
-        for(var i = 0; i < 12; i++){
+        let general_btns = ['AC','C','±','7','8','9','4','5','6','1','2','3','0','.','='];
+        for(var i = 0; i < general_btns.length; i++){
             let button = document.createElement('button')
-            button.className = 'button'
-            button.clicka
-            button.innerText = (i == 9)? '0' : (i == 10)? '.' : (i == 11)? '=' : (i + (-6 * (Math.floor(i/3) + 1) + 13))
+            button.className = 'button notplus'
+            button.clickable = true;
+            button.innerText = general_btns[i];
+            //button.innerText = (i == 9)? '0' : (i == 10)? '.' : (i == 11)? '=' : (i + (-6 * (Math.floor(i/3) + 1) + 13))
             general.appendChild(button)
         }
         let actions = document.createElement('div')
         actions.id = 'actions'
-        for(var i = 0; i < 4; i++){
+        let action = ['÷', '×','-','+'];
+        for(var i = 0; i < action.length; i++){
             let button = document.createElement('button')
-            let action = ['+','-','x','/'];
-            button.className = 'button'
+            if(action[i] === '+'){
+                button.className = 'button plus'
+            } else {
+                button.className = 'button notplus'
+            }
             button.innerText = action[i];
             actions.appendChild(button)
         }
@@ -45,7 +51,7 @@ Calculator.prototype = {
             let val1 = numeral(value1).value()
             let val2 = numeral(value2).value()
             console.log(val1 + "       " + val2)
-            let calcValue = (calcType == '+')? val1 + val2 : (calcType == '-')? val1 - val2 : (calcType == 'x')? val1 * val2 : val1 / val2
+            let calcValue = (calcType == '+')? val1 + val2 : (calcType == '-')? val1 - val2 : (calcType == '×')? val1 * val2 : val1 / val2
             let calcString = calcValue.toString()
             return numeral(calcString).format('0,0.[0000000000000000000000000]')
         }
@@ -54,36 +60,76 @@ Calculator.prototype = {
             let text = this.innerText;
             let screenVal = $('#screen').val();
             console.log(screenVal)
-            if(text == '+' || text == '-' || text == 'x' || text == '/'){
+            if(text == '+' || text == '-' || text == '×' || text == '÷'){
                 if(sessionStorage.getItem('value') == null || sessionStorage.getItem('type') == null){
                     sessionStorage.setItem('value', screenVal);
                     sessionStorage.setItem('type', text);
-                    $('#screen').val("");
+                    sessionStorage.setItem('clean','true')
 
                 } else {
-                    let val1 = sessionStorage.getItem('value')
-                    let val2 = screenVal
-                    let calcType = sessionStorage.getItem('type')
-                    let newValue = (calcType == '=')? val1: calculate(val1, val2, calcType);
+                    let def = (text == '×' || text == '÷')? "1" : "0";
+                    let val1 = sessionStorage.getItem('value');
+                    let clean = sessionStorage.getItem('clean')
+                    let val2 = (clean == 'true')? def : screenVal;
+                    let calcType = sessionStorage.getItem('type');
+                    let newValue = (calcType == '=' || clean == 'true')? val1: calculate(val1, val2, calcType);
                     sessionStorage.setItem('value', newValue);
                     sessionStorage.setItem('type', text);
                     sessionStorage.setItem('clean', 'true');
-                    $('#screen').val(newValue)
+                    $('#screen').val(newValue);
                 }
 
             } else if (text == '='){
                 let val1 = sessionStorage.getItem('value')
                 let val2 = screenVal
                 let calcType = sessionStorage.getItem('type')
-                let newValue = calculate(val1, val2, calcType);
-                sessionStorage.setItem('value', newValue);
-                sessionStorage.setItem('type', text);
-                sessionStorage.setItem('clean', 'true');
-                $('#screen').val(newValue)
+                if(calcType == '='){
+                    let prevType = sessionStorage.getItem('prevType')
+                    let prevValue = sessionStorage.getItem('prevValue')
+                    let newValue = calculate(screenVal, prevValue, prevType);
+                    sessionStorage.setItem('value', newValue);
+                    sessionStorage.setItem('type', text);
+                    sessionStorage.setItem('clean', 'true');
+                    $('#screen').val(newValue)
+                    
+                } else {
+                    sessionStorage.setItem('prevType', calcType)
+                    sessionStorage.setItem('prevValue', val2)
+                    let newValue = calculate(val1, val2, calcType);
+                    sessionStorage.setItem('value', newValue);
+                    sessionStorage.setItem('type', text);
+                    sessionStorage.setItem('clean', 'true');
+                    $('#screen').val(newValue)
+                }
+
+            } else if (text == 'AC') {
+                sessionStorage.removeItem('value')
+                sessionStorage.removeItem('type');
+                sessionStorage.removeItem('prevValue')
+                sessionStorage.removeItem('prevType');
+                $('#screen').val("");
+
+            } else if (text == 'C') {
+                $('#screen').val("");
+                if(sessionStorage.getItem('type') === '='){
+                    sessionStorage.removeItem('value')
+                    sessionStorage.removeItem('type');
+                    sessionStorage.removeItem('prevValue')
+                    sessionStorage.removeItem('prevType');
+                }
+
+            } else if (text == '±') {
+                if(screenVal.startsWith('-')) {
+                    console.log("Hello2")
+                    $('#screen').val(screenVal.replace('-',''))
+                } else {
+                    console.log("Hello")
+                    $('#screen').val('-' + screenVal)
+                }
 
             } else {
                 if(screenVal === "" || sessionStorage.getItem('clean') === 'true'){
-                    let value = (text == '.')? '0.' : text
+                    let value = (text == '.')? '0.' : (text == '±')? '-' : text
                     $('#screen').val(value)
                     sessionStorage.setItem('clean','false')
                     if(sessionStorage.getItem('type') === '='){
@@ -91,9 +137,13 @@ Calculator.prototype = {
                         sessionStorage.removeItem('type');
                     }
                 
-                } else if(screenVal.length < 26){
+                } else if(screenVal.length < 19){
                     if(text == '.'){
                         $('#screen').val(screenVal + '.')
+
+                    } else if (screenVal == '-'){
+                        $('#screen').val('-' + text)
+
                     } else {
                         let value = (screenVal.endsWith('.'))? numeral(screenVal).value().toString() + '.': numeral(screenVal).value().toString()
                         let newValue = value + text
